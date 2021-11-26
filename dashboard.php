@@ -18,8 +18,19 @@ if(isset($_POST['add']))
     $content = $_POST['content'];
     $user = $_SESSION['email'];
 
-    $sql = "INSERT INTO notes SET  title = '$title', content = '$content', user_email = '$user' ";
-    $conn->query($sql);
+    $image = $_FILES['image']['name'];
+    $target = "images/".time()."_".basename($image);
+
+
+    if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+       
+        $sql = "INSERT INTO notes SET  title = '$title', content = '$content', user_email = '$user', img='$target'";
+        $conn->query($sql);
+        
+    }
+
+
+
 
 }
 
@@ -50,10 +61,12 @@ if(isset($_POST['update']))
     $title = $_POST['title'];
     $content = $_POST['content'];
     $note_id = $_GET['edit'];
-
-    $sql = "UPDATE notes SET  title = '$title', content = '$content' WHERE id = '$note_id' ";
+    $image = $_FILES['image']['name'];
+    $target = "images/".time()."_".basename($image);
+    if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+    $sql = "UPDATE notes SET  title = '$title', content = '$content',img='$target' WHERE id = '$note_id' ";
     $conn->query($sql);
-
+    }
     header("Location: dashboard.php");
 
 }
@@ -66,18 +79,25 @@ if(isset($_POST['update']))
 
         <h2>Welcome, <?php echo $_SESSION['email']; ?></h2>
 
-
+        <a href="profile.php">My Profile</a>
+        <br/>
+        <a href="attandence.php">Take Attandence</a>
+        <br/>
         <a href="logout.php">Logout</a>
         <br/><br/>
 
 
-<form method="post" action="">
+
+<form method="post" action="" enctype="multipart/form-data">
 <label for="title">Title:</label><br>
   <input type="text" id="title" name="title" value="<?php echo $title_e; ?>" ><br>
 
   <label for="username">Content:</label><br>
   <textarea name="content"><?php echo $content_e; ?></textarea>
   <br/><br/>
+  <label>Image Upload</label>
+    <br/><br/>
+    <input type="file" name="image"><br><br>
 
 
   <?php 
@@ -105,6 +125,7 @@ if(isset($_POST['update']))
         <th style="border:1px solid black; padding:6px;">Date</th>
         <th style="border:1px solid black; padding:6px;">Title</th>
         <th style="border:1px solid black; padding:6px;">Content</th>
+        <th style="border:1px solid black; padding:6px;">image</th>
         <th style="border:1px solid black; padding:6px;">Action</th>
     </tr>
 <?php
@@ -125,6 +146,7 @@ if($result->num_rows > 0)
     <td style="border:1px solid black; padding:6px;"><?php echo date( 'd/m/Y', strtotime($row['created_on'])); ?></td>
         <td style="border:1px solid black; padding:6px;"><?php echo $row['title']; ?></td>
         <td style="border:1px solid black; padding:6px;"><?php echo $row['content']; ?></td>
+        <td style="border:1px solid black; padding:6px;"><img src="<?php echo $row['img']; ?>" style="width: 100px; height: 100px;"></td>
         <td style="border:1px solid black; padding:6px;"> 
         <a style="color:red;" href="?delete=<?php echo $row['id']; ?>">Delete</a>  <a href="?edit=<?php echo $row['id']; ?>">Edit</a> </td>
     </tr>
